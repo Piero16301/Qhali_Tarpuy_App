@@ -1,4 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:mac_address/mac_address.dart';
+import 'package:mqtt_client/mqtt_client.dart' as mqtt;
+import 'package:mqtt_client/mqtt_server_client.dart';
 
 void main() {
   runApp(const MyApp());
@@ -7,39 +12,21 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Qhali Tarpuy App',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      home: const MyHomePage(title: 'Qhali Tarpuy App'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
 
   final String title;
 
@@ -48,68 +35,136 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  String broker = '192.168.137.1';
+  int port = 10000;
+  String clientId = 'Mobile-App ';
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  MqttServerClient? client;
+  mqtt.MqttConnectionState? connectionState;
+
+  double _temperture = 0.0;
+  double _humidity = 0.0;
+
+  StreamSubscription? subscription;
+
+  void _subscribeToTopic(String topic) {
+    if (connectionState == mqtt.MqttConnectionState.connected) {
+      debugPrint('[MQTT client] Subscribing to ${topic.trim()}');
+      client!.subscribe(topic, mqtt.MqttQos.exactlyOnce);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    GetMac.macAddress.then((value) {
+      clientId = clientId + value;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            Text(
+              'Temperatura: $_temperture',
             ),
             Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+              'Humedad: $_humidity',
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        onPressed: _connect,
+        tooltip: 'Conectar',
+        child: const Icon(Icons.cloud),
+      ),
     );
+  }
+
+  void _connect() async {
+    client = MqttServerClient(broker, clientId);
+    client!.port = port;
+    client!.logging(on: false);
+    client!.keepAlivePeriod = 30;
+    client!.onDisconnected = _onDisconnected;
+
+    final mqtt.MqttConnectMessage connMess = mqtt.MqttConnectMessage()
+        .withClientIdentifier(clientId)
+        .startClean()
+        .withWillQos(mqtt.MqttQos.atMostOnce);
+
+    debugPrint('[MQTT client] MQTT client connecting....');
+    client!.connectionMessage = connMess;
+
+    try {
+      await client!.connect();
+    } catch (e) {
+      debugPrint('[MQTT client] ERROR: $e');
+      _disconnect();
+    }
+
+    if (client!.connectionStatus!.state == mqtt.MqttConnectionState.connected) {
+      debugPrint('[MQTT client] connected');
+      setState(() {
+        connectionState = client!.connectionStatus!.state;
+      });
+    } else {
+      debugPrint('[MQTT client] ERROR: MQTT client connection failed - '
+          'disconnecting, state is ${client!.connectionStatus!.state}');
+      _disconnect();
+    }
+
+    subscription = client!.updates!.listen(_onMessage);
+
+    _subscribeToTopic('test/topic');
+  }
+
+  void _disconnect() {
+    debugPrint('[MQTT client] MQTT client disconnected');
+    client!.disconnect();
+    _onDisconnected();
+  }
+
+  void _onDisconnected() {
+    debugPrint('[MQTT client] onDisconnected');
+    setState(() {
+      connectionState = client!.connectionStatus!.state;
+      client = null;
+      subscription!.cancel();
+      subscription = null;
+    });
+    debugPrint('[MQTT client] MQTT client disconnected');
+  }
+
+  void _onMessage(List<mqtt.MqttReceivedMessage> event) {
+    debugPrint('[MQTT client] message received ${event.length}');
+    final mqtt.MqttPublishMessage recMess =
+        event[0].payload as mqtt.MqttPublishMessage;
+    final String message =
+        mqtt.MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+
+    debugPrint('[MQTT client] MQTT message: topic is <${event[0].topic}>, '
+        'payload is <-- $message -->');
+    debugPrint(client!.connectionStatus!.state.toString());
+    debugPrint('[MQTT client] message with topic: ${event[0].topic}');
+    debugPrint('[MQTT client] message with message: $message');
+
+    if (message[6] == 'T') {
+      setState(() {
+        _temperture = double.parse(message.replaceRange(0, 10, ''));
+      });
+    } else {
+      setState(() {
+        _humidity = double.parse(message.replaceRange(0, 9, ''));
+      });
+    }
   }
 }
