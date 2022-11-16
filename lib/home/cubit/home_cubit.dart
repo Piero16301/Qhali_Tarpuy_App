@@ -5,5 +5,11 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
-export 'cubit/counter_cubit.dart';
-export 'view/counter_page.dart';
+import 'package:bloc/bloc.dart';
+
+class HomeCubit extends Cubit<int> {
+  HomeCubit() : super(0);
+
+  void increment() => emit(state + 1);
+  void decrement() => emit(state - 1);
+}
