@@ -38,6 +38,9 @@ dependencies:
   cupertino_icons: ^1.0.2
   mqtt_client: ^9.7.2
   mac_address: ^1.0.0
+  syncfusion_flutter_core: ^20.3.57
+  syncfusion_flutter_gauges: ^20.3.57
+  syncfusion_flutter_charts: ^20.3.57
 
 dev_dependencies:
   flutter_test:
