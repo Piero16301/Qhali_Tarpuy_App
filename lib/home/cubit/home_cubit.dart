@@ -1,15 +1,34 @@
-// Copyright (c) 2022, Very Good Ventures
-// https://verygood.ventures
-//
-// Use of this source code is governed by an MIT-style
-// license that can be found in the LICENSE file or at
-// https://opensource.org/licenses/MIT.
-
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 
-class HomeCubit extends Cubit<int> {
-  HomeCubit() : super(0);
+part 'home_state.dart';
 
-  void increment() => emit(state + 1);
-  void decrement() => emit(state - 1);
+class HomeCubit extends Cubit<HomeState> {
+  HomeCubit() : super(const HomeState());
+
+  Future<void> saveNewTemperatureLecture() async {
+    try {
+      final currentTimeAsString = DateTime.now().toIso8601String();
+      emit(
+        state.copyWith(
+          temperatureLectures: const <double>[],
+        ),
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> changeNavigationPage(int index) async {
+    try {
+      emit(
+        state.copyWith(
+          selectedPage: index,
+        ),
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
 }
