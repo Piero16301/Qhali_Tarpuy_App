@@ -1,15 +1,25 @@
 part of 'settings_cubit.dart';
 
+enum SavingStatus {
+  initial,
+  saving,
+  saved;
+
+  bool get isInitial => this == SavingStatus.initial;
+  bool get isSaving => this == SavingStatus.saving;
+  bool get isSaved => this == SavingStatus.saved;
+}
+
 class SettingsState extends Equatable {
   const SettingsState({
-    this.preferences,
+    this.savingStatus = SavingStatus.initial,
     this.broker = '',
     this.port = 0,
     this.clientId = '',
     this.topic = '',
   });
 
-  final SharedPreferences? preferences;
+  final SavingStatus savingStatus;
   final String broker;
   final int port;
   final String clientId;
@@ -17,7 +27,7 @@ class SettingsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        preferences,
+        savingStatus,
         broker,
         port,
         clientId,
@@ -25,14 +35,14 @@ class SettingsState extends Equatable {
       ];
 
   SettingsState copyWith({
-    SharedPreferences? preferences,
+    SavingStatus? savingStatus,
     String? broker,
     int? port,
     String? clientId,
     String? topic,
   }) {
     return SettingsState(
-      preferences: preferences ?? this.preferences,
+      savingStatus: savingStatus ?? this.savingStatus,
       broker: broker ?? this.broker,
       port: port ?? this.port,
       clientId: clientId ?? this.clientId,

@@ -1,25 +1,22 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
-import 'package:mac_address/mac_address.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit() : super(const HomeState());
+  HomeCubit(this._preferences)
+      : super(
+          HomeState(
+            broker: _preferences.getString('broker') ?? '',
+            port: _preferences.getInt('port') ?? 0,
+            clientId: _preferences.getString('clientId') ?? '',
+            topic: _preferences.getString('topic') ?? '',
+          ),
+        );
 
-  Future<void> saveNewTemperatureLecture() async {
-    try {
-      final currentTimeAsString = DateTime.now().toIso8601String();
-      emit(
-        state.copyWith(
-          temperatureLectures: const <double>[],
-        ),
-      );
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-  }
+  final SharedPreferences _preferences;
 
   Future<void> changeNavigationPage(int index) async {
     try {
@@ -38,20 +35,10 @@ class HomeCubit extends Cubit<HomeState> {
       emit(
         state.copyWith(
           isReadingMQTT: !state.isReadingMQTT,
-        ),
-      );
-    } catch (e) {
-      debugPrint(e.toString());
-    }
-  }
-
-  Future<void> setUpClientId() async {
-    try {
-      final macAddress = await GetMac.macAddress;
-      emit(
-        state.copyWith(
-          // clientId: '${state.clientId} $macAddress',
-          clientId: 'Mobile-App $macAddress',
+          broker: _preferences.getString('broker') ?? '',
+          port: _preferences.getInt('port') ?? 0,
+          clientId: _preferences.getString('clientId') ?? '',
+          topic: _preferences.getString('topic') ?? '',
         ),
       );
     } catch (e) {
@@ -95,6 +82,19 @@ class HomeCubit extends Cubit<HomeState> {
           humidity: 0,
           temperatureLectures: const <double>[],
           humidityLectures: const <double>[],
+        ),
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  Future<void> saveNewTemperatureLecture() async {
+    try {
+      final currentTimeAsString = DateTime.now().toIso8601String();
+      emit(
+        state.copyWith(
+          temperatureLectures: const <double>[],
         ),
       );
     } catch (e) {

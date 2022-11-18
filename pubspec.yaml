@@ -17,7 +17,6 @@ dependencies:
     sdk: flutter
   go_router: ^5.1.10
   intl: ^0.17.0
-  mac_address: ^1.0.0
   mqtt_client: ^9.7.2
   shared_preferences: ^2.0.15
   syncfusion_flutter_charts: ^20.3.57

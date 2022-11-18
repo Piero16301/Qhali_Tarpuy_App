@@ -8,10 +8,16 @@ import 'package:go_router/go_router.dart';
 import 'package:mqtt_client/mqtt_client.dart' as mqtt;
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:qhali_tarpuy_app/home/home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+  const HomeView({
+    super.key,
+    required this.preferences,
+  });
+
+  final SharedPreferences preferences;
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -24,7 +30,6 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    context.read<HomeCubit>().setUpClientId();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Qhali Tarpuy App'),
@@ -102,41 +107,46 @@ class _HomeViewState extends State<HomeView> {
     required int port,
     required String topic,
   }) async {
-    client = MqttServerClient(broker, clientId);
-    client!.port = port;
-    client!.logging(on: false);
-    client!.keepAlivePeriod = 30;
-    client!.onDisconnected = onDisconnected;
-
-    final connMess = mqtt.MqttConnectMessage()
-        .withClientIdentifier(clientId)
-        .startClean()
-        .withWillQos(mqtt.MqttQos.atMostOnce);
-
-    debugPrint('[MQTT client] MQTT client connecting....');
-    client!.connectionMessage = connMess;
-
     try {
-      await client!.connect();
+      client = MqttServerClient(broker, clientId);
+      client!.port = port;
+      client!.logging(on: false);
+      client!.keepAlivePeriod = 30;
+      client!.onDisconnected = onDisconnected;
+
+      final connMess = mqtt.MqttConnectMessage()
+          .withClientIdentifier(clientId)
+          .startClean()
+          .withWillQos(mqtt.MqttQos.atMostOnce);
+
+      debugPrint('[MQTT client] MQTT client connecting....');
+      client!.connectionMessage = connMess;
+
+      try {
+        await client!.connect();
+      } catch (e) {
+        debugPrint('[MQTT client] ERROR: $e');
+        disconnect();
+      }
+
+      if (client!.connectionStatus!.state ==
+          mqtt.MqttConnectionState.connected) {
+        debugPrint('[MQTT client] connected');
+        setState(() {
+          connectionState = client!.connectionStatus!.state;
+        });
+      } else {
+        debugPrint('[MQTT client] ERROR: MQTT client connection failed - '
+            'disconnecting, state is ${client!.connectionStatus!.state}');
+        disconnect();
+      }
+
+      subscription = client!.updates!.listen(onMessage);
+
+      subscribeToTopic(topic);
     } catch (e) {
-      debugPrint('[MQTT client] ERROR: $e');
-      disconnect();
+      debugPrint(e.toString());
     }
-
-    if (client!.connectionStatus!.state == mqtt.MqttConnectionState.connected) {
-      debugPrint('[MQTT client] connected');
-      setState(() {
-        connectionState = client!.connectionStatus!.state;
-      });
-    } else {
-      debugPrint('[MQTT client] ERROR: MQTT client connection failed - '
-          'disconnecting, state is ${client!.connectionStatus!.state}');
-      disconnect();
-    }
-
-    subscription = client!.updates!.listen(onMessage);
-
-    subscribeToTopic('test/topic');
   }
 
   void subscribeToTopic(String topic) {
@@ -146,7 +156,6 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  // ignore: strict_raw_type
   void onMessage(List<mqtt.MqttReceivedMessage> event) {
     debugPrint('[MQTT client] message received ${event.length}');
     final recMess = event[0].payload as mqtt.MqttPublishMessage;
@@ -186,7 +195,11 @@ class _HomeViewState extends State<HomeView> {
 
   void disconnect() {
     debugPrint('[MQTT client] MQTT client disconnected');
-    client!.disconnect();
+    try {
+      client!.disconnect();
+    } catch (e) {
+      debugPrint('[MQTT client] ERROR: $e');
+    }
     onDisconnected();
   }
 
