@@ -34,6 +34,7 @@ class _HomeViewState extends State<HomeView> {
       appBar: AppBar(
         title: const Text('Qhali Tarpuy App'),
         centerTitle: true,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
