@@ -50,7 +50,8 @@ class HomeCubit extends Cubit<HomeState> {
       final macAddress = await GetMac.macAddress;
       emit(
         state.copyWith(
-          clientId: state.clientId + macAddress,
+          // clientId: '${state.clientId} $macAddress',
+          clientId: 'Mobile-App $macAddress',
         ),
       );
     } catch (e) {

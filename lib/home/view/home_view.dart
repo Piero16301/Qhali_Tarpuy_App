@@ -1,7 +1,10 @@
+// ignore_for_file: cancel_subscriptions, strict_raw_type
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mqtt_client/mqtt_client.dart' as mqtt;
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:qhali_tarpuy_app/home/home.dart';
@@ -26,6 +29,12 @@ class _HomeViewState extends State<HomeView> {
       appBar: AppBar(
         title: const Text('Qhali Tarpuy App'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () => context.push('/settings'),
+          ),
+        ],
       ),
       body: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) {
