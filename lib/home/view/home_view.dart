@@ -89,7 +89,7 @@ class _HomeViewState extends State<HomeView> {
                   topic: state.topic,
                 );
               } else {
-                context.read<HomeCubit>().restartLectures();
+                context.read<HomeCubit>().saveLecturesToDatabase();
                 disconnect();
               }
             },

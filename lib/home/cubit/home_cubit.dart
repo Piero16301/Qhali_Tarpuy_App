@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(this._preferences)
+  HomeCubit(this._preferences, this._httpClient)
       : super(
           HomeState(
             broker: _preferences.getString('broker') ?? '',
@@ -17,6 +18,7 @@ class HomeCubit extends Cubit<HomeState> {
         );
 
   final SharedPreferences _preferences;
+  final Dio _httpClient;
 
   Future<void> changeNavigationPage(int index) async {
     try {
@@ -74,8 +76,21 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  Future<void> restartLectures() async {
+  Future<void> saveLecturesToDatabase() async {
     try {
+      final currentDateTime = DateTime.now().toStringSpanishDateTime();
+      final temperatureResponse = await _httpClient.post<Map<String, dynamic>>(
+        '/temperature.json',
+        data: {currentDateTime: state.temperatureLectures},
+      );
+      final humidityResponse = await _httpClient.post<Map<String, dynamic>>(
+        '/humidity.json',
+        data: {currentDateTime: state.humidityLectures},
+      );
+      if (temperatureResponse.statusCode == 200 &&
+          humidityResponse.statusCode == 200) {
+        debugPrint('Lectures saved to database');
+      }
       emit(
         state.copyWith(
           temperature: 0,
@@ -86,19 +101,20 @@ class HomeCubit extends Cubit<HomeState> {
       );
     } catch (e) {
       debugPrint(e.toString());
-    }
-  }
-
-  Future<void> saveNewTemperatureLecture() async {
-    try {
-      final currentTimeAsString = DateTime.now().toIso8601String();
       emit(
         state.copyWith(
+          temperature: 0,
+          humidity: 0,
           temperatureLectures: const <double>[],
+          humidityLectures: const <double>[],
         ),
       );
-    } catch (e) {
-      debugPrint(e.toString());
     }
+  }
+}
+
+extension on DateTime {
+  String toStringSpanishDateTime() {
+    return '$day-$month-$year/$hour:$minute:$second';
   }
 }

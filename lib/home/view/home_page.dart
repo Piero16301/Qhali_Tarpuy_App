@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qhali_tarpuy_app/home/home.dart';
@@ -7,14 +8,19 @@ class HomePage extends StatelessWidget {
   const HomePage({
     super.key,
     required this.preferences,
+    required this.httpClient,
   });
 
   final SharedPreferences preferences;
+  final Dio httpClient;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => HomeCubit(preferences),
+      create: (_) => HomeCubit(
+        preferences,
+        httpClient,
+      ),
       child: HomeView(
         preferences: preferences,
       ),

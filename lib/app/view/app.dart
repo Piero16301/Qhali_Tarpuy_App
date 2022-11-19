@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:qhali_tarpuy_app/app/app.dart';
 import 'package:qhali_tarpuy_app/l10n/l10n.dart';
@@ -7,13 +8,18 @@ class App extends StatelessWidget {
   const App({
     super.key,
     required this.preferences,
+    required this.httpClient,
   });
 
   final SharedPreferences preferences;
+  final Dio httpClient;
 
   @override
   Widget build(BuildContext context) {
-    final router = goRouter(preferences: preferences);
+    final router = goRouter(
+      preferences: preferences,
+      httpClient: httpClient,
+    );
 
     return MaterialApp.router(
       routeInformationProvider: router.routeInformationProvider,
