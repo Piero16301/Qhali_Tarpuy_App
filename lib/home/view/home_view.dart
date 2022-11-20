@@ -37,9 +37,13 @@ class _HomeViewState extends State<HomeView> {
         title: const Text('Qhali Tarpuy App'),
         centerTitle: true,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.ssid_chart_outlined),
+          onPressed: () => context.push('/charts'),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings),
+            icon: const Icon(Icons.settings_outlined),
             onPressed: () => context.push('/settings'),
           ),
         ],
@@ -66,15 +70,15 @@ class _HomeViewState extends State<HomeView> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             label: 'Temperatura',
-            icon: Icon(Icons.thermostat),
+            icon: Icon(Icons.thermostat_outlined),
           ),
           BottomNavigationBarItem(
             label: 'Humedad',
-            icon: Icon(Icons.water),
+            icon: Icon(Icons.water_outlined),
           ),
         ],
         currentIndex:
-            context.select((HomeCubit cubit) => cubit.state).selectedPage,
+            context.select<HomeCubit, int>((cubit) => cubit.state.selectedPage),
         selectedItemColor: Colors.amber[800],
         onTap: (index) => context.read<HomeCubit>().changeNavigationPage(index),
       ),

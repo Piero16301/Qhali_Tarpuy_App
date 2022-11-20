@@ -7,7 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(this._preferences, this._httpClient) : super(const HomeState());
+  HomeCubit(
+    this._preferences,
+    this._httpClient,
+  ) : super(const HomeState());
 
   final SharedPreferences _preferences;
   final Dio _httpClient;

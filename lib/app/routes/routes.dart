@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
+import 'package:qhali_tarpuy_app/charts/view/view.dart';
 import 'package:qhali_tarpuy_app/home/home.dart';
 import 'package:qhali_tarpuy_app/settings/settings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +23,12 @@ GoRouter goRouter({
         path: '/settings',
         builder: (context, state) => SettingsPage(
           preferences: preferences,
+        ),
+      ),
+      GoRoute(
+        path: '/charts',
+        builder: (context, state) => ChartPage(
+          httpClient: httpClient,
         ),
       ),
     ],
