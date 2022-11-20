@@ -30,6 +30,8 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    context.read<HomeCubit>().intitializeMQTTValues();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Qhali Tarpuy App'),

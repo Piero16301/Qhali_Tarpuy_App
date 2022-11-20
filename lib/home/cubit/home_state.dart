@@ -10,10 +10,10 @@ class HomeState extends Equatable {
     this.humidityLectures = const <double>[],
 
     // MQTT variables
-    required this.broker,
-    required this.port,
-    required this.clientId,
-    required this.topic,
+    this.broker = '',
+    this.port = 0,
+    this.clientId = '',
+    this.topic = '',
   });
 
   final int selectedPage;

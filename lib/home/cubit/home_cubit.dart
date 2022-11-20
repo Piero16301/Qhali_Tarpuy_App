@@ -7,18 +7,26 @@ import 'package:shared_preferences/shared_preferences.dart';
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
-  HomeCubit(this._preferences, this._httpClient)
-      : super(
-          HomeState(
-            broker: _preferences.getString('broker') ?? '',
-            port: _preferences.getInt('port') ?? 0,
-            clientId: _preferences.getString('clientId') ?? '',
-            topic: _preferences.getString('topic') ?? '',
-          ),
-        );
+  HomeCubit(this._preferences, this._httpClient) : super(const HomeState());
 
   final SharedPreferences _preferences;
   final Dio _httpClient;
+
+  Future<void> intitializeMQTTValues() async {
+    final broker = _preferences.getString('broker') ?? '';
+    final port = _preferences.getInt('port') ?? 0;
+    final clientId = _preferences.getString('clientId') ?? '';
+    final topic = _preferences.getString('topic') ?? '';
+
+    emit(
+      state.copyWith(
+        broker: broker,
+        port: port,
+        clientId: clientId,
+        topic: topic,
+      ),
+    );
+  }
 
   Future<void> changeNavigationPage(int index) async {
     try {
@@ -115,6 +123,6 @@ class HomeCubit extends Cubit<HomeState> {
 
 extension on DateTime {
   String toStringSpanishDateTime() {
-    return '$day-$month-$year/$hour:$minute:$second';
+    return '$day|$month|$year|$hour|$minute|$second';
   }
 }
