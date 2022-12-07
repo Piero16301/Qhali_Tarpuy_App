@@ -20,7 +20,7 @@ dependencies:
   intl: ^0.17.0
   mqtt_client: ^9.7.2
   shared_preferences: ^2.0.15
-  syncfusion_flutter_charts: ^20.3.57
+  syncfusion_flutter_charts: ^20.3.60
   syncfusion_flutter_core: ^20.3.57
   syncfusion_flutter_gauges: ^20.3.57
 
