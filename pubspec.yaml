@@ -22,7 +22,7 @@ dependencies:
   shared_preferences: ^2.0.15
   syncfusion_flutter_charts: ^20.3.57
   syncfusion_flutter_core: ^20.3.57
-  syncfusion_flutter_gauges: ^20.3.57
+  syncfusion_flutter_gauges: ^20.4.52
 
 dev_dependencies:
   bloc_test: ^9.1.0
